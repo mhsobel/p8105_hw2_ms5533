@@ -9,6 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library(readxl)
 ```
 
 ## Problem 1
@@ -77,5 +78,57 @@ nyctransit_data_tidy = gather(nyctransit_data, key = route_number,
 
 ## Problem 2 
 
+Read and clean `HealthyHarborWaterWheelTotals2017-9-26.xlsx`
+
+* Specify the sheet in the Excel file and to omit columns containing notes (using the `range` argument and `cell_cols()` function)
+* Use reasonable variable names
+* Omit rows that do not include dumpster-specific data
+* Rounds the number of sports balls to the nearest integer and converts the result to an integer variable (using `as.integer`)
+
+```{r, message=FALSE}
+trashwheel_data = 
+  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+             sheet = "Mr. Trash Wheel", range = cell_cols("A:N")) %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(year)) %>% 
+  mutate(sports_balls = as.integer(sports_balls))
+```
+
+Read and clean precipitation data for 2016 and 2017. 
+
+* Omit rows without precipitation data and add a variable year
+
+```{r, message=FALSE}
+precip_2016 = 
+  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+             sheet = "2016 Precipitation") %>% 
+  janitor::clean_names() %>% 
+  rename(month = precipitation_in, total = x_1) %>%
+  filter(!is.na(month), !is.na(total),
+         month != "Month", total != "Total") %>% 
+  mutate(
+    total = as.numeric(total),
+    year = "2016")
+
+precip_2017 = 
+   read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+             sheet = "2017 Precipitation") %>% 
+  janitor::clean_names() %>% 
+  rename(month = precipitation_in, total = x_1) %>% 
+  filter(!is.na(month), !is.na(total), 
+         month != "Month", total != "Total") %>% 
+  mutate(
+    total = as.numeric(total),
+    year = "2017")
+```
+
+* Combine datasets and convert month to a character variable 
+
+```{r, eval=FALSE}
+precip_tidy = bind_rows(precip_2016, precip_2017) %>% 
+  mutate(month = month.name(month))
+```
+
+### About `trashwheel_data` and `precip_tidy`
 
 
