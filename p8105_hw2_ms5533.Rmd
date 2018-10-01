@@ -109,9 +109,10 @@ precip_2016 =
   mutate(
     total = as.numeric(total),
     year = "2016")
+precip_2016
 
 precip_2017 = 
-   read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
              sheet = "2017 Precipitation") %>% 
   janitor::clean_names() %>% 
   rename(month = precipitation_in, total = x_1) %>% 
@@ -120,13 +121,14 @@ precip_2017 =
   mutate(
     total = as.numeric(total),
     year = "2017")
+precip_2017
 ```
 
 * Combine datasets and convert month to a character variable 
 
 ```{r, eval=FALSE}
 precip_tidy = bind_rows(precip_2016, precip_2017) %>% 
-  mutate(month = month.name(month))
+  mutate(month = month.name(month)) 
 ```
 
 ### About `trashwheel_data` and `precip_tidy`
