@@ -22,9 +22,9 @@ library(readxl)
 
 ```{r, message=FALSE}
 nyctransit_data = 
-  read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
+  read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
   janitor::clean_names() %>% 
-  select(line, starts_with("station"), starts_with("route"), entrance_type, 
+  select(line, station_name, station_latitude, station_longitude, starts_with("route"), entrance_type, 
          entry, vending, ada) %>% 
   mutate(entry = recode(entry, "YES" = TRUE, "NO" = FALSE))
 nyctransit_data
@@ -32,14 +32,14 @@ nyctransit_data
 
 ### About `nyctransit_data`
 
-The tibble created has 1,868 observations and 20 columns. It includes variables that describe the following: line (`line`), station name (`station_name`), station latitude (`station_latitude`), station longitude (`station_longitude`), station location as concatinated long/lat (`station_location`), entrance type (`entrance_type`), entry (`entry`), vending (`vending`), ADA compliance (`ada`), and all of the different route numbers. Most are variables with individual values except for the `route(#)` columns. This means that the data are not tidy, as there are missing values marked as "NA" in the `route(#)` columns. 
+The tibble created has 1,868 observations and 20 columns. It includes variables that describe the following: line (`line`), station name (`station_name`), station latitude (`station_latitude`), station longitude (`station_longitude`), entrance type (`entrance_type`), entry (`entry`), vending (`vending`), ADA compliance (`ada`), and all of the different route numbers. Most are variables with individual values except for the `route(#)` columns. This means that the data are not tidy, as there are missing values marked as "NA" in the `route(#)` columns. 
 
 ### Questions
 
 1. How many distict stations are there? 
 
 ```{r}
-distinct(nyctransit_data, line, station_name, .keep_all = FALSE)
+distinct(nyctransit_data, line, station_name)
 ```
 
 There are **465 distinct stations**, identified by both station name and line. 
@@ -47,10 +47,11 @@ There are **465 distinct stations**, identified by both station name and line.
 2. How many stations are ADA compliant? 
 
 ```{r}
-filter(nyctransit_data, ada == TRUE)
+distinct(nyctransit_data, line, station_name, .keep_all = TRUE) %>% 
+  filter(ada == TRUE)
 ```
 
-**468 stations** are ADA compliant. 
+**84 stations** are ADA compliant. 
 
 3. What proportion of station entracnes/exits without vending allow entrence? 
 
@@ -59,7 +60,7 @@ filter(nyctransit_data, vending == "NO") %>%
   filter(entry == TRUE)
 ```
 
-**69/183 stations** without vending allow entrance. 
+**69/183 stations** or **37%** without vending allow entrance. 
 
 ### Reformat
 
@@ -90,7 +91,7 @@ trashwheel_data =
   read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
              sheet = "Mr. Trash Wheel", range = cell_cols("A:N")) %>% 
   janitor::clean_names() %>% 
-  filter(!is.na(year)) %>% 
+  filter(!is.na(dumpster), dumpster != 23220) %>% 
   mutate(sports_balls = as.integer(sports_balls))
 ```
 
@@ -103,11 +104,12 @@ precip_2016 =
   read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
              sheet = "2016 Precipitation") %>% 
   janitor::clean_names() %>% 
-  rename(month = precipitation_in, total = x_1) %>%
-  filter(!is.na(month), !is.na(total),
-         month != "Month", total != "Total") %>% 
+  rename(month = precipitation_in, total_precip = x_1) %>%
+  filter(!is.na(month), !is.na(total_precip),
+         month != "Month", total_precip != "Total") %>% 
   mutate(
-    total = as.numeric(total),
+    month = as.numeric(month),
+    total_precip = as.numeric(total_precip),
     year = "2016")
 precip_2016
 
@@ -115,23 +117,29 @@ precip_2017 =
   read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
              sheet = "2017 Precipitation") %>% 
   janitor::clean_names() %>% 
-  rename(month = precipitation_in, total = x_1) %>% 
-  filter(!is.na(month), !is.na(total), 
-         month != "Month", total != "Total") %>% 
+  rename(month = precipitation_in, total_precip = x_1) %>% 
+  filter(!is.na(month), !is.na(total_precip), 
+         month != "Month", total_precip != "Total") %>% 
   mutate(
-    total = as.numeric(total),
+    month = as.numeric(month),
+    total_precip = as.numeric(total_precip),
     year = "2017")
 precip_2017
 ```
 
 * Combine datasets and convert month to a character variable 
 
-```{r, eval=FALSE}
+```{r}
 precip_tidy = bind_rows(precip_2016, precip_2017) %>% 
   mutate(month = month.name[month]) 
 ```
 
 ### About `trashwheel_data` and `precip_tidy`
+
+```{r, eval=FALSE}
+filter(precip_tidy, year == "2017") %>% 
+  sum(total_precip)
+```
 
 
 ## Problem 3 
