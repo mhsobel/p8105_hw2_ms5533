@@ -61,7 +61,8 @@ filter(nyctransit_data, vending == "NO") %>%
   filter(entry == TRUE)
 ```
 
-**69/183 stations** or **37% of stations** without vending allow entrance. 
+**`r nrow(filter(nyctransit_data, vending == "NO") %>% 
+  filter(entry == TRUE))`/`r nrow(filter(nyctransit_data, vending == "NO"))` stations** or **`r round(100*(69/183), digits = 1)`% of stations** without vending allow entrance. 
 
 ### Reformat
 
@@ -199,5 +200,50 @@ brfss_data =
 
 brfss_data
 ```
+
+### Questions
+
+1. _*How many unique locations are included in the dataset? Is every state represented? What state is observed the most?*_
+
+```{r, eval=FALSE}
+# unique locations: use state (locationabbr) and county (locationdesc)
+distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE)
+
+# states represented 
+distinct(brfss_data, locationabbr, .keep_all = FALSE)
+
+# most observed state --> NO IDEA, TRYING TO FIND MOST FREQUENT...
+
+```
+
+There are **`r nrow(distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE))` unique locations** in this dataset describing "Overall Health" and **every state is represented, INCLUDING AN EXTRA ONE??**. The most observed state is **UHHHHH...**. 
+
+2. _*In 2002, what is the median of the “Excellent” response value?*_
+
+```{r, eval=FALSE}
+# group by year, filter by 2002, sum -> median of "excellent"
+group_by(brfss_data, year) %>% 
+  filter(year == 2002) %>% 
+  summarise(median(excellent)) # VALUES NOT FOUND???
+# CODE NOT RUNNING --> NA
+```
+
+3. _*Make a histogram of “Excellent” response values in the year 2002.*_
+
+```{r, eval=FALSE}
+# group by year in data set, filter by 2002, select excellent --> hist
+group_by(brfss_data, year) %>% 
+  filter(year == 2002) %>%
+    select(year, excellent) %>% 
+  hist(excellent)
+# NOT SURE WHAT ELSE TO DO...SEEMS TO BE GOOD --> 'x' not numeric? 
+```
+
+4. _*Make a scatterplot showing the proportion of “Excellent” response values in New York County and Queens County (both in NY State) in each year from 2002 to 2010.*_
+
+```{r}
+
+```
+
 
 
