@@ -1,12 +1,12 @@
 ---
 title: "Homework 2"
 author: "Marisa Sobel"
-date: "9/28/2018"
+date: "10/05/2018"
 output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo=TRUE)
 
 library(tidyverse)
 library(readxl)
@@ -105,7 +105,7 @@ trashwheel_data =
 trashwheel_data
 ```
 
-Separate precipitation data
+Import and clean separate precipitation data
 
 ```{r, collapse=TRUE}
 # import 2016 precip data, clean names, rename col, remove NAs, make all col numeric, add 'year' var
@@ -205,44 +205,70 @@ brfss_data
 
 1. _*How many unique locations are included in the dataset? Is every state represented? What state is observed the most?*_
 
-```{r, eval=FALSE}
+```{r, collapse=TRUE}
 # unique locations: use state (locationabbr) and county (locationdesc)
 distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE)
 
 # states represented 
 distinct(brfss_data, locationabbr, .keep_all = FALSE)
 
-# most observed state --> NO IDEA, TRYING TO FIND MOST FREQUENT...
-
+# most observed state, use distinct locations, count for frequency and find the highest number
+# cannot figure out a way for table to also say which state that belongs to
+# summarise(mode(locationabbr)) was not working with the character vector
+# can identify using the table of count and state
+distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE) %>% 
+  count(locationabbr) %>% 
+  summarise(max(n))
 ```
 
-There are **`r nrow(distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE))` unique locations** in this dataset describing "Overall Health" and **every state is represented, INCLUDING AN EXTRA ONE??**. The most observed state is **UHHHHH...**. 
+There are **`r nrow(distinct(brfss_data, locationabbr, locationdesc, .keep_all = FALSE))` unique locations** in this dataset describing "Overall Health" and **every state is represented, including Wasthington D.C**. The most observed state is **Florida**, which appears **44 times**. 
 
 2. _*In 2002, what is the median of the “Excellent” response value?*_
 
-```{r, eval=FALSE}
-# group by year, filter by 2002, sum -> median of "excellent"
-group_by(brfss_data, year) %>% 
+```{r, collapse=TRUE}
+# group by year, filter by 2002, exclude missing, sum -> median of "excellent"
+brfss_data %>%
+  group_by(year) %>% 
   filter(year == 2002) %>% 
-  summarise(median(excellent)) # VALUES NOT FOUND???
-# CODE NOT RUNNING --> NA
+  filter(!is.na(excellent)) %>% 
+  summarise(median(excellent))
 ```
+
+In 2002, the median "Excellent" response value was **23.6**. 
 
 3. _*Make a histogram of “Excellent” response values in the year 2002.*_
 
-```{r, eval=FALSE}
-# group by year in data set, filter by 2002, select excellent --> hist
+```{r, collapse=TRUE}
+# group by year in data set, filter by 2002, select excellent --> hist using ggplot
 group_by(brfss_data, year) %>% 
   filter(year == 2002) %>%
     select(year, excellent) %>% 
-  hist(excellent)
-# NOT SURE WHAT ELSE TO DO...SEEMS TO BE GOOD --> 'x' not numeric? 
+  ggplot(aes(x = excellent)) +
+  geom_histogram() +
+  labs(
+    title = "Frequency of 'Excellent' Response Values in 2002",
+    x = "Year",
+    y = "Frequency") + 
+  theme_bw()
 ```
 
 4. _*Make a scatterplot showing the proportion of “Excellent” response values in New York County and Queens County (both in NY State) in each year from 2002 to 2010.*_
 
 ```{r}
-
+brfss_data %>% 
+  mutate(
+    prop_excellent = (excellent) /
+      (excellent + very_good + good + fair + poor)) %>% 
+  filter(locationdesc == "NY - New York County" | 
+           locationdesc == "NY - Queens County") %>% 
+  ggplot(aes(y = prop_excellent, x = year, color = locationdesc)) +
+  geom_point(size = 3) + 
+  labs(
+    title = "Proportion of 'Excellent' Response Values in New York and Queens Counties",
+    x = "Year",
+    y = "Proportion of 'excellent' response values") +
+  theme_bw() + 
+  theme(legend.position = "bottom")
 ```
 
 
