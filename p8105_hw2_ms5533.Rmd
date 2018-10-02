@@ -10,19 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(readxl)
-
-library("p8105.datasets")
 ```
 
 ## Problem 1
 
-* _*Read and clean data*_
-
-* _*Retain: `line, station, name, station latitude/longidute, routes served, entry, vending, entrance type, ADA compliance`*_
-
-* _*Convert `entry` from character to logical*_ 
-
-```{r}
+```{r, message=FALSE, collapse=TRUE}
 # import transit data, clean, select relevant vars, recode 'entry'
 
 nyctransit_data = 
@@ -32,6 +24,7 @@ nyctransit_data =
          station_longitude, starts_with("route"), 
          entrance_type, entry, vending, ada) %>% 
   mutate(entry = recode(entry, "YES" = TRUE, "NO" = FALSE))
+
 nyctransit_data
 ```
 
@@ -45,7 +38,6 @@ The tibble created has **`r nrow(nyctransit_data)`** observations and **`r ncol(
 
 ```{r}
 # distinct statations by 'line' and 'station name'
-
 distinct(nyctransit_data, line, station_name)
 ```
 
@@ -55,7 +47,6 @@ There are **465 distinct stations**, identified by both station name and line.
 
 ```{r}
 # distinct stations with ADA compliance
-
 distinct(nyctransit_data, line, station_name, .keep_all = TRUE) %>% 
   filter(ada == TRUE)
 ```
@@ -66,7 +57,6 @@ distinct(nyctransit_data, line, station_name, .keep_all = TRUE) %>%
 
 ```{r}
 # proportion entrances/exits w/o vending that allow entry
-
 filter(nyctransit_data, vending == "NO") %>% 
   filter(entry == TRUE)
 ```
@@ -75,18 +65,21 @@ filter(nyctransit_data, vending == "NO") %>%
 
 ### Reformat
 
-_*Make route number and route name distinct variables. How many distinct stations serve the A train? Of stations that serve the A train, how many are ADA compliant?*_ 
+_*How many distinct stations serve the A train? Of stations that serve the A train, how many are ADA compliant?*_ 
 
-```{r}
+```{r, collapse=TRUE}
 # wide to long format for 'route', new key = 'route_number'
 # filter for A train, then distinct stations
 # of those, number many ADA compliant
 
-nyctransit_data_tidy = gather(nyctransit_data, key = route_number,
-                              value = route_name, route1:route11) %>% 
+nyctransit_data_tidy = 
+  gather(nyctransit_data, key = route_number,
+         value = route_name, route1:route11) %>% 
   filter(route_name == "A") %>% 
   distinct(line, station_name, .keep_all = TRUE) %>% 
   filter(ada == TRUE)
+
+nyctransit_data_tidy
 ```
 
 **60 distinct stations** serve the A train. **17** of those stations are ADA compliant. 
@@ -94,9 +87,9 @@ nyctransit_data_tidy = gather(nyctransit_data, key = route_number,
 
 ## Problem 2 
 
-_*Read and clean `HealthyHarborWaterWheelTotals2017-9-26.xlsx`*_
+Mr. Trash Wheel Data
 
-```{r}
+```{r, collapse=TRUE}
 # import trash wheel data with relevant columbs (no notes) clean names
 # remove rows without dumpster data, remove final sum at end
 # make sports_balls numeric 
@@ -107,11 +100,13 @@ trashwheel_data =
   janitor::clean_names() %>% 
   filter(!is.na(dumpster), dumpster != 23220) %>% 
   mutate(sports_balls = as.integer(sports_balls))
+
+trashwheel_data
 ```
 
-_*Read and clean precipitation data for 2016 and 2017. Omit rows without precipitation data and add a variable year.*_
+Separate precipitation data
 
-```{r, message=FALSE}
+```{r, collapse=TRUE}
 # import 2016 precip data, clean names, rename col, remove NAs, make all col numeric, add 'year' var
 
 precip_2016 = 
@@ -126,6 +121,8 @@ precip_2016 =
     total_precip = as.numeric(total_precip),
     year = "2016")
 
+head(precip_2016)
+
 # import 2017 precip data, repeate above
 
 precip_2017 = 
@@ -139,21 +136,23 @@ precip_2017 =
     month = as.numeric(month),
     total_precip = as.numeric(total_precip),
     year = "2017")
+
+precip_2017
 ```
 
-_*Combine datasets and convert month to a character variable*_ 
+Combine precipitation data
 
-```{r}
+```{r, collapse=TRUE}
 # bind cleaned 2016 and 2017 precip tibbles, numeric months -> names
-
 precip_tidy = bind_rows(precip_2016, precip_2017) %>% 
   mutate(month = month.name[month]) 
+
 precip_tidy
 ```
 
 ### About `trashwheel_data` and `precip_tidy`
 
-```{r}
+```{r, collapse=TRUE}
 # median sports balls in 2016
 trashwheel_data %>% 
   group_by(year) %>% 
@@ -176,12 +175,29 @@ precip_tidy %>%
 There are **`r nrow(trashwheel_data)`** observations in the Mr. Trash Wheel dataset, and **`r nrow(precip_tidy)`** observations  in the 2016-2017 monthly percipitation dataset. From `r trashwheel_data$month[1]` `r trashwheel_data$year[1]` until `r trashwheel_data$month[215]` `r trashwheel_data$year[215]`, Mr. Trash Wheel collected **`r sum(trashwheel_data$weight_tons)`** tons or **`r sum(trashwheel_data$volume_cubic_yards)`** cubic yards of trash from the Baltimore Harbor. Over the same course of time, the dumpster monthly averages of some of the objects counted were as followed: **`r round(mean(trashwheel_data$plastic_bottles))` plastic bottles**, **`r round(mean(trashwheel_data$polystyrene))` polystyrene**, and **`r round(mean(trashwheel_data$cigarette_butts))` cigarette butts**. In 2017, the median number of sports balls in a dumpster was **26 balls**. For the available data, the total precipitation was **29.9 inches** in 2017 and **40.0 inches** in 2016. 
 
 
-
 ## Problem 3 
 
-```{r}
+```{r, collapse=TRUE}
+# add library that includes dataset 
+library("p8105.datasets")
+
+# import brfss_smart2010 data, clean names, filter by "Overall Health", remove unwanted vars
+# long -> wide with key=reponse and value= data_value
+# new var: proportion (excellent + very good / total)
+
 brfss_data = 
-  data("brfss_smart2010")
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>% 
+  select(-class, -topic, -question, 
+         -sample_size, -(confidence_limit_low:geo_location)) %>% 
+  spread(key = response, value = data_value) %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    prop_high_positive = (excellent + very_good) /
+      (excellent + very_good + good + fair + poor))
+
+brfss_data
 ```
 
 
