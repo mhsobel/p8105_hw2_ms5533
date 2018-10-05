@@ -96,10 +96,10 @@ Mr. Trash Wheel Data
 # make sports_balls numeric 
 
 trashwheel_data = 
-  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
              sheet = "Mr. Trash Wheel", range = cell_cols("A:N")) %>% 
   janitor::clean_names() %>% 
-  filter(!is.na(dumpster), dumpster != 23220) %>% 
+  filter(!is.na(dumpster)) %>% 
   mutate(sports_balls = as.integer(sports_balls))
 
 trashwheel_data
@@ -111,7 +111,7 @@ Import and clean separate precipitation data
 # import 2016 precip data, clean names, rename col, remove NAs, make all col numeric, add 'year' var
 
 precip_2016 = 
-  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
              sheet = "2016 Precipitation") %>% 
   janitor::clean_names() %>% 
   rename(month = precipitation_in, total_precip = x_1) %>%
@@ -122,12 +122,12 @@ precip_2016 =
     total_precip = as.numeric(total_precip),
     year = "2016")
 
-head(precip_2016)
+precip_2016
 
 # import 2017 precip data, repeate above
 
 precip_2017 = 
-  read_excel("./data/HealthyHarborWaterWheelTotals2017-9-26.xlsx", 
+  read_excel("./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
              sheet = "2017 Precipitation") %>% 
   janitor::clean_names() %>% 
   rename(month = precipitation_in, total_precip = x_1) %>% 
@@ -173,7 +173,7 @@ precip_tidy %>%
   summarise(sum(total_precip))
 ```
 
-There are **`r nrow(trashwheel_data)`** observations in the Mr. Trash Wheel dataset, and **`r nrow(precip_tidy)`** observations  in the 2016-2017 monthly percipitation dataset. From `r trashwheel_data$month[1]` `r trashwheel_data$year[1]` until `r trashwheel_data$month[215]` `r trashwheel_data$year[215]`, Mr. Trash Wheel collected **`r sum(trashwheel_data$weight_tons)`** tons or **`r sum(trashwheel_data$volume_cubic_yards)`** cubic yards of trash from the Baltimore Harbor. Over the same course of time, the dumpster monthly averages of some of the objects counted were as followed: **`r round(mean(trashwheel_data$plastic_bottles))` plastic bottles**, **`r round(mean(trashwheel_data$polystyrene))` polystyrene**, and **`r round(mean(trashwheel_data$cigarette_butts))` cigarette butts**. In 2017, the median number of sports balls in a dumpster was **26 balls**. For the available data, the total precipitation was **29.9 inches** in 2017 and **40.0 inches** in 2016. 
+There are **`r nrow(trashwheel_data)`** observations in the Mr. Trash Wheel dataset, and **`r nrow(precip_tidy)`** observations  in the 2016-2017 monthly percipitation dataset. From `r trashwheel_data$month[1]` `r trashwheel_data$year[1]` until `r trashwheel_data$month[215]` `r trashwheel_data$year[215]`, Mr. Trash Wheel collected **`r sum(trashwheel_data$weight_tons)`** tons or **`r sum(trashwheel_data$volume_cubic_yards)`** cubic yards of trash from the Baltimore Harbor. Over the same course of time, the dumpster monthly averages of some of the objects counted were as followed: **`r round(mean(trashwheel_data$plastic_bottles))` plastic bottles**, **`r round(mean(trashwheel_data$polystyrene))` polystyrene**, and **`r round(mean(trashwheel_data$cigarette_butts))` cigarette butts**. In 2017, the median number of sports balls in a dumpster was **26 balls**. For the available data, the total precipitation was **40.0 inches** in 2017 and **32.9 inches** in 2016. 
 
 
 ## Problem 3 
